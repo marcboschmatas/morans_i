@@ -195,7 +195,7 @@ lags_unnested_quadrant <- left_join(lags_unnested, lm[,c("CUSEC", "quadrant")], 
 
 
 group.center <- function(var,grp) {
-  return(var-tapply(var,grp,mean,na.rm=T)[grp])
+  return((var-tapply(var,grp,mean,na.rm=T)[grp])/tapply(var,grp,sd,na.rm=T)[grp])
 }
 
 
@@ -214,5 +214,5 @@ ggplot(lags_unnested_quadrant) +
   theme_minimal() +
   ylab("Lag renda std") +
   xlab("Renda std") +
-  facet_wrap(~muni, scales = "free")
+  facet_wrap(~muni)
 
