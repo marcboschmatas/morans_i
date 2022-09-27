@@ -68,6 +68,7 @@ lags_t <- function(table, col, queen = TRUE, style = "W"){
   lags <- sfdep::st_lag(x = x, nb = nb, wt = w, na_ok = TRUE)
   t <- cbind(x, lags) |> as.data.frame()
   colnames(t) <- c("Value", "Lag")
+  t$CUSEC <- table$CUSEC
   return(t)
 }
 
@@ -184,3 +185,34 @@ tm_shape(lm_plot) +
               palette = palette,
               border.alpha = 0.5) +
   tm_facets(by = "NMUN")
+
+
+# moran scatterplot w/ quadrants
+
+
+
+lags_unnested_quadrant <- left_join(lags_unnested, lm[,c("CUSEC", "quadrant")], by = "CUSEC")
+
+
+group.center <- function(var,grp) {
+  return(var-tapply(var,grp,mean,na.rm=T)[grp])
+}
+
+
+lags_unnested_quadrant$centervalue <- unname(group.center(lags_unnested_quadrant$Value, lags_unnested_quadrant$muni))
+
+
+lags_unnested_quadrant$centerlag <- unname(group.center(lags_unnested_quadrant$Lag, lags_unnested_quadrant$muni))
+
+
+ggplot(lags_unnested_quadrant) + 
+  geom_point(aes(x = centervalue, y = centerlag, colour = quadrant)) +
+  scale_colour_manual(values = palette) +
+  geom_smooth(method = "lm", formula = y ~ x, aes(x = centervalue, y = centerlag)) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  theme_minimal() +
+  ylab("Lag renda std") +
+  xlab("Renda std") +
+  facet_wrap(~muni, scales = "free")
+
